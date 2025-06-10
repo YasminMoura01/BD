@@ -1,0 +1,41 @@
+--63. Crie uma View que exiba os "código" e "nome" dos clientes que residem nos estados de SP, RJ ou MS.
+create view ex63 as
+select codigo_cliente, nome_cliente
+from cliente
+where uf in ('SP', 'RJ', 'MS')
+select *
+from ex63
+
+--64. Crie uma View que retorne os "número do pedido", "código do cliente" e "prazo de entrega" dos vendedores cujo "nome" seja 'Carlos'.
+create view ex64 as
+select p.num_pedido, p.codigo_cliente, p.prazo_entrega
+from pedido p
+inner join vendedor v on p.codigo_vendedor=v.codigo_vendedor
+where upper(v.nome_vendedor) = 'Carlos'
+select *
+from ex64
+
+--65. Crie uma View que apresente o "número do pedido", "código do produto", "descrição do produto", "quantidade", "valor unitário" ("val_unit") e o "subtotal" calculado ("quantidade" * "val_unit"). 
+create view ex65 as
+select distinct i.num_pedido, i.codigo_produto, pr.descricao_produto, i.quantidade, pr.val_unit, i.quantidade * pr.val_unit as subtotal
+from item_do_pedido i
+inner join produto pr on i.codigo_produto=pr.codigo_produto
+select *
+from ex65
+
+--66. Com base na View anterior, crie outra visualização que exiba a soma total de cada "número do pedido".
+create view ex66 as
+select num_pedido, sum(subtotal) as total
+from ex65
+group by num_pedido
+select *
+from ex66
+
+--67. A partir da View anterior, desenvolva uma visualização que inclua o "número do pedido", "código do vendedor", "nome do vendedor", "salário fixo" e o "total do pedido".
+create view ex67 as
+select p.num_pedido, p.codigo_vendedor, v.nome_vendedor, v.salario_fixo, e.total
+from ex66 e  
+inner join pedido p on e.num_pedido=p.num_pedido
+inner join vendedor v on p.codigo_vendedor=v.codigo_vendedor
+select *
+from ex67

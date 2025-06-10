@@ -1,0 +1,103 @@
+--Elabore uma função que liste os vendedores(codigo, nome, salario) que atenderam um cliente, recebendo o nome do cliente como parametro
+create function ex73(nome varchar)
+returns table(codigo int, nomev varchar, salario numeric)
+language SQL
+as $$
+select v.codigo_vendedor, v.nome_vendedor, v.salario_fixo
+from cliente c
+inner join pedido p on c.codigo_cliente=p.codigo_cliente
+inner join vendedor v on p.codigo_vendedor=v.codigo_vendedor
+where upper(c.nome_cliente)=upper(nome);
+$$;	
+
+select distinct *
+from ex73('Ana');
+
+ 
+--74.  Crie uma função que retorne os códigos, descrição e unidades de todos os produtos cadastrados. Ao selecionar a função ordene pela descrição do produto.
+create function ex74()
+returns table(codigo int, descricao varchar, unidades varchar)
+language SQL
+as $$
+select codigo_produto, descricao_produto, unidade
+from produto
+order by descricao_produto
+$$;
+ 
+select *
+from ex74();
+ 
+--75.   Desenvolva uma função que apresente o maior, o menor e a média dos salários dos vendedores que atenderam um cliente específico, utilizando como parâmetros o nome do cliente e uma faixa de comissão. Como exemplo de parâmetro pode ser usado Susana, C.
+create function ex75(nome varchar, comissao varchar)
+returns table(maior varchar, menor varchar, media varchar)
+language sql
+as $$
+select max(v.salario_fixo), min(v.salario_fixo), avg(v.salario_fixo)
+from vendedor v
+inner join pedido p on v.codigo_vendedor=p.codigo_vendedor
+inner join cliente c on p.codigo_cliente=c.codigo_cliente
+where upper(c.nome_cliente)=upper(nome) and upper(v.faixa_comissao)=upper(comissao)
+$$
+ 
+select *
+from ex75('Susana','C');
+ 
+--76.   Desenvolva uma função que mostre código e descrição do produto, a quantidade de produtos vendidos, o Preço Unitário e o subtotal (quantidade*Preço Unitário) de um determinado Pedido.
+create function ex76(codigo int)
+returns table(codigo int, descricao varchar, quantidade int, val_unit numeric, subtotal numeric)
+language sql
+as $$
+select p.codigo_produto, p.descricao_produto, i.quantidade, p.val_unit, (i.quantidade * p.val_unit) as subtotal
+from produto p
+inner join item_do_pedido i on p.codigo_produto = i.codigo_produto
+where p.codigo_produto = codigo;
+$$;
+
+select *
+from ex76(121);
+ 
+--77.   Desenvolva um procedimento que retorne a soma de uma venda de um determinado pedido.
+create function ex77(codigo_pedido int)
+returns bigint
+language sql
+as $$
+select sum(ip.quantidade * p.val_unit)
+from item_do_pedido ip
+inner join produto p
+on ip.codigo_produto = p.codigo_produto
+where ip.num_pedido = codigo_pedido;
+$$;
+
+select * 
+from ex77(101);
+
+--78.   Elabore um procedimento que informe, para cada vendedor, a quantidade de pedidos em que ele participou.
+create function ex78()
+returns table (codigo_vendedor integer, nome_vendedor varchar, quantidade_pedidos integer)
+language sql
+as $$
+select v.codigo_vendedor, v.nome_vendedor, count(p.num_pedido)::int
+from vendedor v
+inner join pedido p on v.codigo_vendedor = p.codigo_vendedor
+group by v.codigo_vendedor, v.nome_vendedor;
+$$;
+
+select * 
+from ex78();
+
+--79.   Crie um procedimento que retorne o código e o nome dos clientes, filtrando os resultados com base no código do vendedor, no estado de residência do cliente e no prazo de entrega do pedido. Utilize como exemplo os seguintes parâmetros: 101 (código do vendedor), 'RJ' (estado) e 20 (prazo de entrega).
+create function ex79(p_cod_vendedor integer, p_estado varchar, p_prazo integer)
+returns table (codigo_cliente integer, nome_cliente varchar)
+language sql
+as $$
+select distinct c.codigo_cliente, c.nome_cliente
+from cliente c
+inner join pedido p on c.codigo_cliente = p.codigo_cliente
+where p.codigo_vendedor = p.cod_vendedor
+and c.uf = p_estado
+and p.prazo_entrega = p_prazo
+order by c.nome_cliente;
+$$;
+
+select * 
+from ex79(101, 'RJ', 20);
